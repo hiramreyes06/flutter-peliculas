@@ -1,0 +1,62 @@
+El patron bloc es una forma de manejar e estado de la data de nuestra
+aplicacion y significa:
+Buisness Logic Component / Logica de negocio de componente
+Con el fin de centralizar la informacion, para que la data  pueda ser usada por
+uno o mas widgets 
+Un bloc trabaja en base a streams 
+
+Tiene 3 puntos importantes
+Trabaja unicamente con entradas y salidas
+Para introducir informacion usaremos el sink y para la salida usaremos un stream
+Es importante cerrar el stream cuando ya no lo necesitemos
+
+Un ejemplo seria que en un widget que tiene un boton al presionarlo, emita 
+algun dato al stream con la clase sink al bloc, el cual puede hacer otros
+procedimientos como peticiones http, etc, hasta que finalmente haga stream
+a otro widget que esta al pendiente.
+
+Todo con el fin de que los widget se encarguen unicamente de dibujarse y no
+controlar el estado de la informacion.
+
+Hay 2 tipos de streamControllers
+SingleSuscription: Por defecto un stream controler es del tipo singleSuscription
+el cual solo un widget va a poder estar al tanto del stream hasta que el widget
+cierre la coneccion con el stream despues otro widget podra acceder al stream.
+
+Broadcast: Con este tipo varios widgets pueden acceder al stream
+
+Para crear un stream siempre se necesita un Sink y un Stream
+
+Cuando ya no necesitemos un stream es necesario desconectarlo en los
+widgets que se esta usando, comunmente se hace en el ciclo de vida
+dispose de un statefulwidget.
+
+Para flutter hay un widget llamado StreamBuilder y se va a encargar de 
+dibujar un widget cada vez que reciba datos de algun stream ademas de poder 
+controlar si la informacion ya fue recibida o si ocurrio algun error para mostrar
+otro widget.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,159 @@
+Para poder hacer una peticion http, necesitamos instalar el paquete de flutter,
+en el archivo pubspec.yaml
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^0.1.2
+  flutter_swiper :
+  http: 
+
+Primero creamos la clase modelo, que pueda tener una clase encargada
+de instancear individualmente para manejar la data de la peticion
+
+class Pelicula {
+  double popularity;
+  int voteCount;
+  bool video;
+  String posterPath;
+  int id;
+  bool adult;
+  String backdropPath;
+  String originalLanguage;
+  String originalTitle;
+  List<int> genreIds;
+  String title;
+  double voteAverage;
+  String overview;
+  String releaseDate;
+
+  Pelicula({
+    this.popularity,
+    this.voteCount,
+    this.video,
+    this.posterPath,
+    this.id,
+    this.adult,
+    this.backdropPath,
+    this.originalLanguage,
+    this.originalTitle,
+    this.genreIds,
+    this.title,
+    this.voteAverage,
+    this.overview,
+    this.releaseDate,
+  });
+
+//Este constructor va a recibir un json mapeado para inicializar 
+//los valores de la clase para la instancea
+  Pelicula.fromJsonMap( Map<String, dynamic> json){
+
+//Asi asignamos los valores del json mapeado a las propiedades de la clase
+  voteCount = json['vote_count'];
+  id = json['id'];
+  video = json['video'];
+  //Es necesaria validar que se convierta a un double
+  voteAverage = json['vote_average'] / 1;
+  title = json['title'];
+  popularity = json['popularity'] / 1;
+  posterPath = json['poster_path'];
+  originalLanguage = json['original_language'];
+  originalTitle = json['original_title'];
+  genreIds =  json['genre_ids'].cast<int>();
+  backdropPath = json['backdrop_path'];
+  adult= json['adult'];
+  overview = json['overview'];
+  releaseDate = json['relase_date'];
+
+
+  }
+
+
+}
+
+Ademas puede contener otra clase encargada de manejar una lista del
+mismo tipo de instancea
+
+
+//Esta clase esta destinada a manejar una lista de peliculas
+class Peliculas{
+
+//Propiedad de la clase que guarda las peliculas
+List<Pelicula> items = new List();
+
+Peliculas();
+
+//Este metodo va a recibir 
+Peliculas.fromJsonList( List<dynamic> jsonList){
+
+if( jsonList == null) return;
+
+
+jsonList.forEach( ( peliculaMapa ) {
+
+//Aqui hacemos uso de la clase para instancear individualmente  
+final pelicula = new Pelicula.fromJsonMap( peliculaMapa);
+
+items.add( pelicula ); 
+
+
+});
+
+}
+
+
+}
+
+
+Ahora tenemos que crear una clase destinada a hacer la peticion http, 
+recibir los datos y mapearlos. como en providers/peliculas_provider.dart
+
+
+//Para convertir la data a json string
+import 'dart:convert';
+
+//De esta forma importamos y lo nombramos
+import 'package:http/http.dart' as http;
+
+//Para manejar la data correctamente
+import 'package:peliculas_app/src/models/pelicula_model.dart';
+
+class PeliculasProvider{
+
+
+String _apikey ='9cc6160bf98bad73e96d3437561b1079';
+String _url ='api.themoviedb.org';
+String _language='es_ES';
+
+
+Future<List<Pelicula>> getEnCines() async{
+
+//Asi creamos una url con parametros para la peticion http
+final url = Uri.https( _url, '3/movie/now_playing',{
+  'api_key': _apikey,
+  'lenguage': _language
+});
+
+ final resp= await http.get( url );
+
+//De esta forma mapeamos la data de la peticion
+  final Map decodedData = json.decode( resp.body );
+
+  //Esto retorna la clase encargada de manejar la lista de peliculas
+  final peliculas = new Peliculas.fromJsonList( decodedData['results'] );
+
+  print( peliculas );
+
+//La lista de peliculas se encuentra en la propiedad items
+return peliculas.items;
+}
+
+}
+
+
+
+
+

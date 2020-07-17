@@ -1,0 +1,31 @@
+Los stream en dart son como un flujo de datos y de informacion que son
+emitidas para un o varios usuarios a la vez, el flujo va en una sola via.
+
+En dart la clase encargada de los datos que entran y salen de un stream
+StreamController
+
+Para poder manipular o transformar el flujo de informacion hay una clase 
+llamada
+StreamTransformer
+
+Para agregar informacion o data solo al inicio del stream tenemos la clase
+Sink
+
+Y para estar al pendiente de los datos emitidos tenemos la clase
+Stream
+
+Un ejemplo seria para la lista de peliculas de un widget, el cual le podemos 
+ir agregando dinamicamente bloques de peliculas para emitirlos por el stream
+
+
+
+
+
+
+
+
+
+
+
+
+

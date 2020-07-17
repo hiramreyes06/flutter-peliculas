@@ -1,0 +1,132 @@
+Este widget es una forma de crear slides de forma manual
+
+
+import 'package:flutter/material.dart';
+import 'package:peliculas_app/src/models/pelicula_model.dart';
+
+class HorizontalScroll extends StatelessWidget {
+  
+final List<Pelicula> peliculas;
+
+//Al construirce el widget se inicializa la lista de peliculas
+HorizontalScroll( { @required this.peliculas } );
+
+  @override
+  Widget build(BuildContext context) {
+
+final _screenSize = MediaQuery.of(context).size;
+
+//Novatada con el diseño con container
+    return Container(
+    height : _screenSize.height * 0.43,
+  width: _screenSize.width,
+    
+    //Este widget es una colleccion
+    //y sirve para desplazar widgets por la pantalla
+    child: PageView(
+      pageSnapping: false,
+      controller: PageController(
+        initialPage: 1,
+        viewportFraction: 0.8
+      ),
+
+      children: _tarjetas( context ),
+          ),
+          );
+        }
+      
+
+
+
+List<Widget> _tarjetas(BuildContext context) {
+
+//Esto es otra froma de iterar una lista 
+ return peliculas.map( (pelicula){
+
+return Container(
+margin: EdgeInsets.only( right: 15.0),
+child: Column(
+children: <Widget>[
+
+//De esta forma le agregamos bordes redondos a las imagenes
+ClipRRect(
+  borderRadius: BorderRadius.circular(20.0),
+  child:   FadeInImage(
+  
+    placeholder: AssetImage('assets/img/no-image.jpg'),
+  
+    image: NetworkImage( pelicula.getImagenUrl() ),
+  
+    fit: BoxFit.cover
+  
+     ),
+),
+
+
+SizedBox( height: 2.0),
+
+Text(
+  pelicula.title,
+  overflow: TextOverflow.ellipsis,
+  style: Theme.of(context).textTheme.caption,
+  )
+
+],
+
+
+),
+
+);
+
+//Es necesario convertir el iterable del map a una lista
+}).toList();
+
+
+}
+
+
+}
+
+
+Ahora para mostrar el widget personalizado, en la pagina o lugar
+
+Widget _footer( BuildContext context) {
+
+final _screenSize = MediaQuery.of(context).size;
+
+    return Container(
+      width: _screenSize.width * 0.50,
+      height: _screenSize.height * 1.0,
+      child: Column(
+
+  children: <Widget>[
+    //Asi centralizamos los estilos y fuentes que tendra mi app
+    Text('Populares', style: Theme.of(context).textTheme.subhead),
+
+  SizedBox( height: 5.0),
+
+  FutureBuilder(
+
+    future: peliculaProvider.getPopulares(),
+    
+    builder: (BuildContext context, AsyncSnapshot<List<Pelicula>> snapshot) {
+
+      //De esta forma se verifica si la peticion del future tiene respuesta
+    if(snapshot.hasData){ 
+
+      return  HorizontalScroll(peliculas: snapshot.data );
+
+      
+    }else{
+
+      return Center(child: CircularProgressIndicator());
+    }
+
+  }
+    )
+
+    ]
+      ),
+
+    );
+  }

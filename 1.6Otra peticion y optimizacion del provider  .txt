@@ -1,0 +1,64 @@
+
+Esta endpoint trae las peliculas mas populares
+
+Future<List<Pelicula>>  getPopulares() async{
+
+final url= Uri.https( _url , '3/movie/popular',{
+  'api_key': _apikey,
+  'language': _language,
+  'page': '1',
+});
+
+ final jsonString = await http.get(url);
+
+ final Map <String, dynamic> mapaPeliculas = json.decode( jsonString.body );
+
+
+return Peliculas.fromJsonList( mapaPeliculas['results'] ).items.toList();
+
+}
+
+
+Para no duplicar codigo y optimizarlo creamos el siguente metodo
+
+
+
+Future<List<Pelicula>> peliculasApi(Uri uri) async{
+
+final jsonString = await http.get( uri );
+
+// //De esta forma mapeamos la data de la peticion
+   final Map<String, dynamic> mapaPelicula = json.decode( jsonString.body );
+// //La lista de peliculas se encuentra en la propiedad items
+// return peliculas.items;
+  //Esto retorna la clase encargada de manejar la lista de peliculas
+  //final mapaPeliculas = new Peliculas.fromJsonList( decodedData['results'] );
+
+return Peliculas.fromJsonList( mapaPelicula['results'] ).items.toList();
+
+
+}
+
+Future<List<Pelicula>> getEnCines() {
+
+//Asi creamos una url con parametros para la peticion http
+final url = Uri.https( _url, '3/movie/now_playing',{
+  'api_key': _apikey,
+  'lenguage': _language
+});
+
+ return peliculasApi( url );
+}
+
+
+Future<List<Pelicula>>  getPopulares(){
+
+final url= Uri.https( _url , '3/movie/popular',{
+  'api_key': _apikey,
+  'language': _language,
+  'page': '1',
+});
+
+return peliculasApi( url );
+
+}

@@ -1,0 +1,55 @@
+La documentacion se encuentra en https://pub.dev/packages/flutter_swiper
+Para instalarlo tenemos que declararlo en el archivo pubspec.yaml
+en la seccion de dependenicas, si no le especificamos la version
+automaticamente instalara la mas reciente
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^0.1.2
+  flutter_swiper : 
+
+La forma basica de un swipper es:
+
+Widget _swipeTarjetas() {
+
+//El widget swiper necesita saber las dimensiones por eso se basa en un containter
+    return Container(
+      //asi especificamos el tamaño del container
+      width: double.infinity,
+      height: 300.0,
+
+      child: Swiper(
+          itemBuilder: (BuildContext context,int index){
+            return new Image.network("http://via.placeholder.com/350x150",
+            fit: BoxFit.fill
+            );
+          },
+
+          //Aqui se especifica la cantidad de objetos que contendra
+          itemCount: 3,
+          //Esta es una propiedad para que visualmente muestre la cantidad
+          pagination: new SwiperPagination(),
+
+          //Con esto muestra los botones para desplazar el swiper
+          control: new SwiperControl(),
+        ),
+    );
+
+  }
+
+Y para cambiar de diseño y animaciones buscamos en la documentacio
+como el diseño de stack
+
+ child: Swiper(
+
+        layout: SwiperLayout.STACK,
+        //Es necesario especificar el tamaño
+        itemWidth: 300.0,
+          itemBuilder: (BuildContext context,int index){
+
+
+

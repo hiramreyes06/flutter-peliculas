@@ -1,0 +1,24 @@
+El safe area es un widget encargado para los scaffold que sirve para 
+poder mostrar el contenido adecuadamente al diseño de las nuevas
+pantallas, se usa asi
+
+@override
+  Widget build(BuildContext context) {
+
+
+    return Scaffold(
+
+      
+
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text('Inicio page')
+
+      ),
+
+      body: SafeArea(
+        child: Text('Contenido en area segura')
+        ),
+
+    );
+  }
