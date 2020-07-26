@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:peliculas_app/src/models/pelicula_model.dart';
 import 'package:peliculas_app/src/providers/peliculas_provider.dart';
+import 'package:peliculas_app/src/search/search_delegate.dart';
 
 
 
@@ -18,6 +19,9 @@ final peliculaProvider = new PeliculasProvider();
   @override
   Widget build(BuildContext context) {
 
+//Esta funcion carga las peliculas al principio y las emite al stream
+    peliculaProvider.getPopulares();
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
@@ -29,6 +33,17 @@ final peliculaProvider = new PeliculasProvider();
           icon: Icon(Icons.search),
            onPressed: (){
 
+             //Este es un metodo que retorna un future que resuelve el resultado
+             //de alguna busqueda, 
+             showSearch(
+               context: context,
+               //De esta forma se usa la barra de busqueda personalizada que creamos
+                delegate: DataSearch(),
+                
+                //Con esta propiedad podemos inicializar el texto de la buscqueda
+                query: ''
+                
+                 );
            })
       ],
 
@@ -55,7 +70,8 @@ final peliculaProvider = new PeliculasProvider();
 
     
 return FutureBuilder(
-
+//Es necesario el stream que va estar al pendiente
+//Siempre va ha estar esperando a que llegue la data emitida para construir el widget
   future: peliculaProvider.getEnCines(),
   builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
 
@@ -83,31 +99,37 @@ return FutureBuilder(
    
   }
 
+//Widget de horizontal scroll para descargar y mostrar peliculas progresivamente
   Widget _footer( BuildContext context) {
 
 final _screenSize = MediaQuery.of(context).size;
 
     return Container(
-      width: _screenSize.width * 0.50,
-      height: _screenSize.height * 1.0,
+      width: double.infinity,
+      
       child: Column(
 
   children: <Widget>[
     //Asi centralizamos los estilos y fuentes que tendra mi app
-    Text('Populares', style: Theme.of(context).textTheme.subhead),
+    Text('Populares', style: Theme.of(context).textTheme.subtitle1),
 
   SizedBox( height: 5.0),
 
-  FutureBuilder(
+  StreamBuilder(
 
-    future: peliculaProvider.getPopulares(),
+    stream: peliculaProvider.popularesStream,
     
     builder: (BuildContext context, AsyncSnapshot<List<Pelicula>> snapshot) {
 
       //De esta forma se verifica si la peticion del future tiene respuesta
     if(snapshot.hasData){ 
 
-      return  HorizontalScroll(peliculas: snapshot.data );
+      return  HorizontalScroll(
+        peliculas: snapshot.data,
+
+  //De esta forma enviamos la definicion de un metodo completo como argumento
+        siguientePagina: peliculaProvider.getPopulares,
+         );
 
       
     }else{

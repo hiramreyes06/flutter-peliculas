@@ -39,22 +39,42 @@ final _screenSize = MediaQuery.of(context).size;
         //Esto se va a encargar de hacer un foreach para las peliculas
           itemBuilder: (BuildContext context, int index){
 
-            //Este widget agrega border redondos
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(20.0),
+        //Es necesario crear un id unico para que el tag del widget Hero, no
+        //tenga errores      
+            peliculas[index].idUnico = '${peliculas[index].id}-stack';
+
+           
+            return Hero(
+
+              tag: peliculas[index].idUnico,
+                 //Este widget agrega border redondos
+                child: ClipRRect(
+                borderRadius: BorderRadius.circular(20.0),
 
         //Este widget sirve para mostral una imagen con animacion
-              child: FadeInImage(
-                //Necesita una imagen de mediante una web url
-                image: NetworkImage( peliculas[index].getImagenUrl() ),
+                child: GestureDetector(
+                       
+                    child: FadeInImage(
+                    //Necesita una imagen de mediante una web url
+                    image: NetworkImage( peliculas[index].getImagenUrl() ),
 
-                //Esto va a mostrar si no se encuentra la imagen
-                placeholder: AssetImage('assets/img/no-image.jpg'),
-                //Esto hace que la imagen tome el tamaño que dispone
-                fit: BoxFit.cover,
+                    //Esto va a mostrar si no se encuentra la imagen
+                    placeholder: AssetImage('assets/img/no-image.jpg'),
+                    //Esto hace que la imagen tome el tamaño que dispone
+                    fit: BoxFit.cover,
+                  ),
+
+                onTap: (){
+
+                Navigator.pushNamed(context, 'peliculaDetalle', arguments: peliculas[index] );
+
+                },
+
+
+                )
+
+              
               ),
-
-            
             );
             
              

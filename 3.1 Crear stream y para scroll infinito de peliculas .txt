@@ -1,0 +1,236 @@
+Para crear un widget que reciba una lista de peliculas progresivamente por
+paginas y detectar cuando el scroll esta en la ultima pagina
+Necesitamos modificar el provider de pelicuas: peliculas_provider.dart
+
+//Asi guardamos la pagina en la que vamos
+int _popularesPage =0;
+
+//Esta lista se va a encargar de guardar el total acumulado de peliculas emitidas 
+//por el stream
+List<Pelicula> _populares = new List();
+
+/* 
+De esta forma creamos un stream para las peliculas, con el broadcast significa
+que varios widgets podran escuchar lo que el stream emita
+*/
+final _popularesStreamController = StreamController<List<Pelicula>>.broadcast();
+
+//Asi declaramos una funcion encargada de emitir los valores al stream por el sink
+Function(List<Pelicula>) get popularesSink => _popularesStreamController.sink.add;
+
+//Asi declaramos una funcion para obtener la data que omite el stream
+Stream<List<Pelicula>> get popularesStream => _popularesStreamController.stream;
+
+void disposeStreams(){
+
+  //De esta forma cuando el widget se destruya se cancelara el stream
+  _popularesStreamController?.close();
+}
+
+
+Y modificamos la funcion
+
+
+Future<List<Pelicula>>  getPopulares() async{
+
+  _popularesPage++;
+
+final url= Uri.https( _url , '3/movie/popular',{
+  'api_key': _apikey,
+  'language': _language,
+  'page': _popularesPage.toString(),
+});
+
+//Primero extramos la lista de peliculas de la api
+final listaPeliculas = await peliculasApi( url );
+
+//ASi guardamos en una lista las peliculas
+_populares.addAll( listaPeliculas );
+
+//Utilizamos esta funcion para emitir la lista al stream
+popularesSink( _populares );
+
+return listaPeliculas;
+
+}
+
+Ahora tenemos que cambiar la clase del widget que se encarga de usar el 
+de mostrar las peliculas horizontalmente , para que pueda comunicarse con
+su widget padre a la hora de detectar que se llego al final del scroll, para
+eso le agregamos como parametro del constructor una funcion, adema
+de agregar un listener para estar al pendiente a los datos del scroll
+
+
+
+import 'package:flutter/material.dart';
+import 'package:peliculas_app/src/models/pelicula_model.dart';
+
+class HorizontalScroll extends StatelessWidget {
+  
+final List<Pelicula> peliculas;
+
+//Esta propiedad nos va a servir como auxiliar de otra funcion que va a ser recibida
+final Function siguientePagina;
+
+//Este esta es la configuracion para el widget de pageView para hacer scroll
+final _pageController = new PageController(
+initialPage: 1,
+viewportFraction: 0.8
+);
+
+//Al construirce el widget se inicializa la lista de peliculas
+HorizontalScroll( {
+ @required this.peliculas,
+
+ //De esta forma nos podemos comunicar del widget padre al hijo con la instancea
+ //para pasarle el metodo del provider getPopulares
+ @required this.siguientePagina 
+ });
+
+  @override
+  Widget build(BuildContext context) {
+
+final _screenSize = MediaQuery.of(context).size;
+
+
+//De esta forma creamos un listener que estara al pendiente del scroll del pageController
+_pageController.addListener((){
+
+//Asi detectamos cuando se llega al final del scroll, para agregar mas peliculas
+  if( _pageController.position.pixels >=
+   _pageController.position.maxScrollExtent -200){
+
+//Esta funcion en realidad sera el metodo de getPopulares que tiene el provider
+     siguientePagina();
+     print('Se descargaron mas peliculas');
+   }
+
+});
+
+//Novatada con el diseño con container
+    return Container(
+    height : _screenSize.height * 0.43,
+  width: _screenSize.width,
+    
+    //Este widget es una colleccion
+    //y sirve para desplazar widgets por la pantalla
+    child: PageView(
+      pageSnapping: false,
+
+      controller: _pageController,
+
+      children: _tarjetas( context ),
+          ),
+          );
+        }
+      
+
+
+
+List<Widget> _tarjetas(BuildContext context) {
+
+//Esto es otra froma de iterar una lista 
+ return peliculas.map( (pelicula){
+
+return Container(
+margin: EdgeInsets.only( right: 15.0),
+child: Column(
+children: <Widget>[
+
+//De esta forma le agregamos bordes redondos a las imagenes
+ClipRRect(
+  borderRadius: BorderRadius.circular(20.0),
+  child:   FadeInImage(
+  
+    placeholder: AssetImage('assets/img/no-image.jpg'),
+  
+    image: NetworkImage( pelicula.getImagenUrl() ),
+  
+    fit: BoxFit.cover
+  
+     ),
+),
+
+
+SizedBox( height: 2.0),
+
+Text(
+  pelicula.title,
+  overflow: TextOverflow.ellipsis,
+  style: Theme.of(context).textTheme.caption,
+  )
+
+],
+
+
+),
+
+);
+
+//Es necesario convertir el iterable del map a una lista
+}).toList();
+
+
+}
+
+
+}
+
+
+AHORA para usar el widget necesitamos el StreamBuilder, como en:
+
+Primero debemos tener en cuenta que se necesita ejecutar el metodo
+encargado de enviar datos al stream , para que asi tenga datos y se
+construya por primera vez,
+En algun lado donde se ejecute antes que el widget StreamBuilder
+//Esta funcion carga las peliculas y las emite al stream
+    peliculaProvider.getPopulares();
+
+Y Para usar el widget con stream quedaria asi
+
+//Widget de horizontal scroll para descargar y mostrar peliculas progresivamente
+  Widget _footer( BuildContext context) {
+
+final _screenSize = MediaQuery.of(context).size;
+
+    return Container(
+      width: _screenSize.width * 0.50,
+      height: _screenSize.height * 1.0,
+      child: Column(
+
+  children: <Widget>[
+    //Asi centralizamos los estilos y fuentes que tendra mi app
+    Text('Populares', style: Theme.of(context).textTheme.subhead),
+
+  SizedBox( height: 5.0),
+
+  StreamBuilder(
+
+    stream: peliculaProvider.popularesStream,
+    
+    builder: (BuildContext context, AsyncSnapshot<List<Pelicula>> snapshot) {
+
+      //De esta forma se verifica si la peticion del future tiene respuesta
+    if(snapshot.hasData){ 
+
+      return  HorizontalScroll(
+        peliculas: snapshot.data,
+        siguientePagina: peliculaProvider.getPopulares,
+         );
+
+      
+    }else{
+
+      return Center(child: CircularProgressIndicator());
+    }
+
+  }
+    )
+
+    ]
+      ),
+
+    );
+  }
+
+ 

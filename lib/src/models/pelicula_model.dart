@@ -29,6 +29,9 @@ items.add( pelicula );
 }
 
 class Pelicula {
+
+  String idUnico;
+
   double popularity;
   int voteCount;
   bool video;
@@ -93,6 +96,18 @@ class Pelicula {
     }else{
 
       return 'https://image.tmdb.org/t/p/w500/$posterPath';
+    }
+
+
+  }
+
+  String getBackgroundImgUrl(){
+
+    if( posterPath == null){
+      return 'https://onlinezebra.com/wp-content/uploads/2019/01/error-404-not-found.jpg';
+    }else{
+
+      return 'https://image.tmdb.org/t/p/w500/$backdropPath';
     }
 
 

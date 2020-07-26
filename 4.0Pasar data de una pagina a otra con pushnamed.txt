@@ -1,0 +1,42 @@
+Primero necesitamos definir una ruta de alguna pagina en nuestra configuracion
+de rutas como:
+
+'/': (BuildContext context) => InicioPage(),
+'peliculaDetalle' : (BuildContext context) => PeliculaDetalle()
+
+Ahora para navegar y mandar argumentos, en cualquier parte agregamos
+
+return GestureDetector(
+  child: tarjeta,
+  onTap: (){
+
+    print('Se presiono la pelicula: ${pelicula.title}');
+
+    Navigator.pushNamed(context, 'peliculaDetalle', arguments: pelicula);
+  }
+);
+
+Y para utlizar y extraer los argumentos de navegacion, en el widget 
+
+class PeliculaDetalle extends StatelessWidget {
+
+
+
+  @override
+  Widget build(BuildContext context) {
+
+//Asi capturamos los argumentos enviador por navegacion con pushnamed
+final Pelicula pelicula = ModalRoute.of(context).settings.arguments;
+
+    return Scaffold(
+     appBar: AppBar(
+       centerTitle: true,
+       title: Text('${pelicula.title}'),
+     ), 
+
+    body: Center(child: Text('${pelicula.overview}')),
+
+    );
+
+  }
+}

@@ -1,0 +1,149 @@
+Para crear una barra de busqueda tenemos que heredar de la clase 
+SearchDelegate, la cual tiene clases y propiedades que nos facilitan el 
+funcionamiento, se hereda de la clase con el fin de poder personalizar 
+los iconos, botones y sus acciones, ejemplo
+
+Creamos una nueva clase de dart 
+
+import 'package:flutter/material.dart';
+
+
+class DataSearch extends SearchDelegate{
+
+//Esa propiedad se encargar de guardar el valor del resulado seleccionado
+  String seleccionado='';
+
+  final peliculas =[
+    'Spiderman',
+    'Aquaman',
+    'Batman',
+    'Shazam',
+    'Ironman',
+    'Capitan America'
+  ];
+
+  final peliculasRecientes=[
+'Spiderman',
+'Capitan America'
+  ];
+
+
+  
+  //Esta propiedad se encarga crear botones del lado derecho de la barra y las 
+  //acciones que tendra
+  @override
+  List<Widget> buildActions(BuildContext context) {
+     
+     return [
+
+       IconButton(
+        icon: Icon( Icons.clear),
+        onPressed:(){
+         
+         //Existe una variable en la clase SearchDelegate llamada query es la 
+         //encargada de guardar el texto del input, y asi la limpiamos
+         query='';
+        }
+        )
+
+     ];
+    }
+  
+//Con esto se pueden agregar iconos o botones  de la parte izquierda de la barra
+    @override
+    Widget buildLeading(BuildContext context) {
+      
+       return IconButton(
+         //Este es un tipo de boton con icono y animacion
+         icon: AnimatedIcon(
+           icon: AnimatedIcons.menu_arrow,
+           //Es necesario agregar esta propiedad
+           progress: transitionAnimation, 
+           ),
+          onPressed: (){
+
+            print('Se regreso desde la busqueda');
+
+          //De la clase heredada contiene este metodo que sirve para cerrar la pagina
+            close(context, null);
+
+          }
+          );
+    }
+  
+//Este Widget es el que se construye y se muestra cuando se selecciona alguna 
+//opcion
+  @override
+  Widget buildResults(BuildContext context) {
+    
+     return Center( child: Container(
+       child: Text( seleccionado ),
+     ));
+    }
+  
+    
+
+//De esta forma creamos algunas opciones sugeridas
+  @override
+  Widget buildSuggestions(BuildContext context) {
+
+//De esta forma construimos la lista de opciones sugeridas y validamos si
+//el texto del input esta vacio
+    final listaSugerida = ( query.isEmpty )
+    ? peliculasRecientes
+    //De esta forma filtramos listas mediante una condicion
+    : peliculas.where( ( pelicula ) => pelicula.toLowerCase().startsWith( query ) ).toList();
+    
+    return ListView.builder(
+      itemCount: listaSugerida.length,
+      itemBuilder: (context, i) {
+
+        return ListTile(
+          leading: Icon(Icons.movie),
+          title: Text( listaSugerida[i] ),
+          onTap: (){
+
+            seleccionado = listaSugerida[i];
+            print('Se presiono una opcion sugerida');
+
+            //Este metodo es necesario para construir y mostrar el widget de buildResults
+            showResults(context);
+            
+          },
+        );
+      },
+
+    );
+  }
+
+}
+
+Para poder usar la barra de busqueda que creamos, en alguna pagina de
+un scaffold
+
+ return Scaffold(
+      appBar: AppBar(
+        centerTitle: false,
+        title: Text('Inicio page'),
+        backgroundColor: Colors.indigoAccent,
+
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.search),
+           onPressed: (){
+
+             //Este es un metodo que retorna un future que resuelve el resultado
+             //de alguna busqueda, 
+             showSearch(
+               context: context,
+               //De esta forma se usa la barra de busqueda personalizada que creamos
+                delegate: DataSearch(),
+                
+                //Con esta propiedad podemos inicializar el texto de la buscqueda
+                query: ''
+                
+                 );
+           })
+      ],
+
+      ),

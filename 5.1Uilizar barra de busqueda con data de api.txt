@@ -1,0 +1,87 @@
+Para eso necesitamos crear un metodo de un provider que se encargue de
+hacer la peticion http y traer la data que sera mostrada con la barra de busqueda
+
+En el provider de peliuclas
+
+Future<List<Pelicula>> buscarPelicula( String query ) async{
+
+final url = Uri.https( _url, '3/search/movie',{
+  'api_key': _apikey,
+  'language': _language,
+  'query' : query
+});
+
+return await _peliculasApi(url);
+  
+}
+
+Ahora para utilizarla nos vamos a la clase de la barra de busqueda que creamos
+
+Y inicializamos el provider para ejecutar el metodo que trae los resultados
+
+final peliculasProvider = new PeliculasProvider();
+
+Y en el metodo sobrescrito que se encarga de construir los widgets que
+mustran los resultados
+
+
+//Con este metodo , construimos los resultados de busqueda y opciones sugeridas
+  @override
+  Widget buildSuggestions(BuildContext context) {
+
+    if( query.isEmpty){
+      return Container();
+    }
+
+    return FutureBuilder(
+      future: peliculasProvider.buscarPelicula(query),
+   
+      builder: (BuildContext context, AsyncSnapshot<List<Pelicula>> snapshot) {
+
+        if(snapshot.hasData){
+
+          return ListView(
+
+          //De esta forma retornamos una lista de widgets con el map
+          children:  snapshot.data.map( (pelicula){
+            return ListTile(
+              leading: FadeInImage(
+                placeholder: AssetImage('assets/img/no-image.jpg'),
+                 image: NetworkImage( pelicula.getImagenUrl() ),
+                 width: 50.0,
+                 fit: BoxFit.contain,
+                 ),
+
+                 title: Text( pelicula.title ),
+                 subtitle: Text( pelicula.originalTitle ),
+
+
+                 onTap: (){
+                   //Para cerrar la pantalla del buscador y abrir la de peliculaDetalle
+                   close(context, null);
+
+                    //Es necesario agregarle algo a la propiedad para que no truene el Hero
+                    pelicula.idUnico='';
+
+                    //Asi reutilizamos la pantalla
+                    Navigator.pushNamed(context, 'peliculaDetalle', arguments: pelicula);
+
+                 },
+            );
+
+      
+
+//Es necesario para convertir el iterable del map a una lista para el children del List View
+          }).toList(),  
+
+          );
+
+        }else{
+
+        return Center(child: CircularProgressIndicator() );          
+        }
+        
+      }
+    );
+
+  }

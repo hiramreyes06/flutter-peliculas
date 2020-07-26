@@ -1,0 +1,104 @@
+Es necesario optimizar el provider de peliculas con una propiedad booleana
+para que al listener del tope del scroll solo ejecute una vez la peticion
+http de la pelicula.
+
+//Esto sirve para optimizar el listener del scroll 
+bool _cargando = false;
+
+Future<List<Pelicula>>  getPopulares() async{
+
+  if( _cargando ) return[];
+
+  _cargando= true;
+
+  _popularesPage++;
+
+  print('Cargando siguientes de http');
+  
+
+final url= Uri.https( _url , '3/movie/popular',{
+  'api_key': _apikey,
+  'language': _language,
+  'page': _popularesPage.toString(),
+});
+
+//Primero extramos la lista de peliculas de la api
+final listaPeliculas = await peliculasApi( url );
+
+//ASi guardamos en una lista las peliculas
+_populares.addAll( listaPeliculas );
+
+//Utilizamos esta funcion para emitir la lista al stream
+popularesSink( _populares );
+
+_cargando= false;
+
+return listaPeliculas;
+
+}
+
+
+Ahora tambien debemos optimizar el widget encargado de mostrar la coleccion
+de peliculas, ya que con solo con PageView renderiza simultaneamente todos
+los elementos que contenga.
+Para eso
+
+Donde necesitemos renderizar la coleccion
+//El .builder hace que rendericemos dinamicamente los elemtos del children
+child: PageView.builder(
+      pageSnapping: false,
+
+      controller: _pageController,
+      //Es necesario que sepa el numero de elementos que va a renderizar
+      itemCount: peliculas.length,
+
+      //Esto hace que solo optimice lo que se demanda, en base a un index
+      itemBuilder: (context, i) => _tarjeta(context, peliculas[i] )
+      ,
+      //children: _tarjetas( context ),
+
+          ),
+
+Ahora el PageView con el .builder , tambien necesita el widget que va a 
+mostrar, para eso:
+
+
+Widget _tarjeta( BuildContext context, Pelicula pelicula ){
+return Container(
+margin: EdgeInsets.only( right: 15.0),
+child: Column(
+children: <Widget>[
+
+//De esta forma le agregamos bordes redondos a las imagenes
+ClipRRect(
+  borderRadius: BorderRadius.circular(20.0),
+  child:   FadeInImage(
+  
+    placeholder: AssetImage('assets/img/no-image.jpg'),
+  
+    image: NetworkImage( pelicula.getImagenUrl() ),
+  
+    fit: BoxFit.cover
+  
+     ),
+),
+
+
+SizedBox( height: 2.0),
+
+Text(
+  pelicula.title,
+  overflow: TextOverflow.ellipsis,
+  style: Theme.of(context).textTheme.caption,
+  )
+
+],
+
+
+),
+
+);
+
+}
+
+
